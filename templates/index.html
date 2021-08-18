@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}
+memmory
+{% endblock %}
+
+{% block main%}
+<table class="table table-striped">
+    <thead>
+        <th>ID</th>
+        <th>App Name</th>
+        <th>Login</th>
+        <th>Password</th>
+        <th>Additional</th>
+    </thead>
+    <tbody>
+        {% for app in apps %}
+            <tr>
+                <td>{{ app.id }}</td>
+                <td>{{ app.app_name }}</td>
+                <td>{{ app.login }}</td>
+                <td>{{ app.password }}</td>
+                <td>{{ app.additional }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
