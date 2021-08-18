@@ -123,5 +123,17 @@ def adding():
     else:
         return render_template("adding.html")
 
+@app.route("/find")
+def find():
+    return render_template("find.html")
+
+@app.route("/search")
+def search():
+    q = request.args.get("q")
+    if q:
+        apps = db.execute("SELECT * FROM apps WHERE app_name LIKE ?", "%" + q + "%")
+    else:
+        apps = []
+    return render_template("search.html", apps=apps)
 
 #export FLASK_DEBUG=
