@@ -29,7 +29,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 #configure sqlite3 db
-db  = SQL("sqlite:///manager.db")
+db  = SQL("sqlite:///vone.db")
 
 #the home page
 @app.route("/")
@@ -43,30 +43,32 @@ def index():
 @app.route("/register", methods=["GET","POST"])
 def register():
     if request.method == "POST":
-        firstname = request.form.get("firstname")
-        surname = request.form.get("surname")
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
         username = request.form.get("username")
         #error checking
         rows = db.execute("SELECT * FROM users WHERE username = ?", username)
         if not username:
-            return apology("Must provide username", 400)
+            #return apology("Must provide username", 400)
+            flash("Must provide username")
         elif len(rows) != 0:
-            return apology("Username already exist", 400)
-        elif not firstname or not surname:
-            return apology("Must provide your personal details", 400)
+            #return apology("Username already exist", 400)
+            flash("Username already exist")
         elif not password:
-            return apology("Must provide password", 400)
+            #return apology("Must provide password", 400)
+            flash("Must provide password")
         elif not confirmation:
-            return apology("Must provide a confirmation password", 400)
+            #return apology("Must provide a confirmation password", 400)
+            flash("Must provide a confirmation password")
         elif not password == confirmation:
             return apology("Passwords must match", 400)
+            
         else: 
             # generate hash of the password
             hash = generate_password_hash(password,method="pbkdf2:sha256")
             #insert new user
-            db.execute("INSERT INTO users (firstname,surname, password, username) VALUES (?,?,?,?)",firstname,surname,hash,username)
+            db.execute("INSERT INTO users (username, password) VALUES (?,?)",username,hash)
+            
             #redirect user to home page
             return redirect("/")
     return render_template("register.html")
@@ -80,9 +82,12 @@ def login():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         if not request.form.get("username"):
-            return apology("You must provide your username", 403)
+            #return apology("You must provide your username", 403)
+            flash("You must provide your username")
         elif not request.form.get("password"):
+            flash("You must provide a password")
             return apology("You must provide a password", 403)
+            
 
         #quere database fro username
         rows = db.execute("SELECT * FROM users WHERE username = ? ", request.form.get("username"))
