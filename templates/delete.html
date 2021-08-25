@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %} 
+Delete the app 
+{% endblock %}
+
+{% block main %}
+<form action="/delete" method="post">
+    <h3>Read me</h3>
+    <p>App ID required and your account password in order to delete something.</p>
+    <div class="form-group">
+        <input class="input" autocomplete="off" autofocus name="id" placeholder="App ID" type="number">
+    </div>
+    <div class="form-group">
+        <input class="input" autocomplete="off" autofocus name="password" placeholder="Password" type="password">
+    </div>
+    <button class="btn btn-primary" type="submit">Change</button>
+</form>
+{% endblock %}

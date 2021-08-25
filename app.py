@@ -1,12 +1,14 @@
 import os 
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_session import Session
+from flask.helpers import get_flashed_messages
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
-
+import time
 from helpers import apology, login_required
+
 
 #configure application
 app = Flask(__name__)
@@ -98,7 +100,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect("/") 
+    return redirect(url_for("login")) 
 
 #Adding new content page
 @app.route("/adding", methods=["GET","POST"])
@@ -114,11 +116,9 @@ def adding():
         #prepare the variables
         app_name = request.form.get("app_name")
         login = request.form.get("login")
-        password = request.form.get("app_name")
+        password = request.form.get("password")
         additional = request.form.get("additional")
-        #hash password in db
-        hash = generate_password_hash(password,method="pbkdf2:sha256")
-        db.execute("INSERT INTO apps (app_id, app_name, login, password, additional) VALUES (?,?,?,?,?)",session["user_id"],app_name,login,hash,additional)
+        db.execute("INSERT INTO apps (app_id, app_name, login, password, additional) VALUES (?,?,?,?,?)",session["user_id"],app_name,login,password,additional)
         return redirect("/")
     else:
         return render_template("adding.html")
@@ -127,13 +127,71 @@ def adding():
 def find():
     return render_template("find.html")
 
+#search the app
 @app.route("/search")
 def search():
     q = request.args.get("q")
     if q:
-        apps = db.execute("SELECT * FROM apps WHERE app_name LIKE ?", "%" + q + "%")
+        apps = db.execute("SELECT * FROM apps WHERE app_name LIKE ? AND app_id = ?", "%" + q + "%", session["user_id"])
     else:
         apps = []
     return render_template("search.html", apps=apps)
 
-#export FLASK_DEBUG=
+#update the app information
+@app.route("/update", methods=["GET","POST"])
+@login_required
+def update():
+    if request.method == "POST":
+        #checking if the id is correct
+        id_in = int(request.form.get("id"))
+        v = db.execute("SELECT id FROM apps WHERE app_id = ?", session["user_id"])
+        id = []
+        for app in v:
+            id.append(app["id"])
+        if id_in in id:
+            app_name = request.form.get("app_name")
+            login = request.form.get("login")
+            password = request.form.get("password")
+            confiramtion = request.form.get("confirmation")
+            additional = request.form.get("additonal")
+
+            if not app_name:
+                return apology("Must provide an App Name", 400)
+            elif not login:
+                return apology("Must provide the Login", 400)
+            elif not password or not confiramtion:
+                return apology("Must provide password", 400)
+            elif password != confiramtion:
+                return apology("Password does not much", 400)
+
+            db.execute("UPDATE apps SET app_name=?, login=?, password=?, additional=? WHERE id = ? AND app_id = ?",app_name,login,password,additional,id_in, session["user_id"])
+            return redirect("/")
+        else:
+            return apology("ID not found", 400)
+    else:
+        return render_template("update.html")
+
+#delete app 
+@app.route("/delete",methods=["GET","POST"])
+@login_required
+def delete():
+    if request.method == "POST":
+        id_in = int(request.form.get("id"))
+        v = db.execute("SELECT id FROM apps WHERE app_id = ?", session["user_id"])
+        id = []
+        for app in v:
+            id.append(app["id"])
+        if id_in in id:
+            rows = db.execute("SELECT password FROM users WHERE user_id = ? ", session["user_id"])
+            if int(len(rows)) != 1 or not check_password_hash(rows[0]["password"], request.form.get("password")):
+                return apology("Invalid  password", 403)
+            db.execute("DELETE FROM apps WHERE id = ?", id_in)
+            flash("Success")
+            return redirect("/")
+        else:
+            return apology("Invalid ID",400)
+    else:
+        return render_template("delete.html")
+
+
+

@@ -1,14 +1,16 @@
 from flask import redirect, render_template, request, session
 from functools import wraps
+import os
+import requests
+import urllib.parse
 
-def apology(message,code=400):
+def apology(message, code=400):
     def escape(s):
-        #escape special characters
         for old, new in [("-", "--"), (" ", "-"), ("_", "__"), ("?", "~q"),
                          ("%", "~p"), ("#", "~h"), ("/", "~s"), ("\"", "''")]:
-            s = s.replace(old,new)
+            s = s.replace(old, new)
         return s
-    return render_template("apology.html", top=code,bottom=escape("message")), code
+    return render_template("apology.html", top=code, bottom=escape(message)), code
 
 def login_required(f):
     #decorate routes to request login
