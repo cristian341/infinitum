@@ -29,7 +29,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 #configure sqlite3 db
-db  = SQL("sqlite:///vone.db")
+db  = SQL("sqlite:///v2.db")
 
 #the home page
 @app.route("/")
@@ -46,6 +46,9 @@ def register():
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
         username = request.form.get("username")
+        firstname = request.form.get("firstname")
+        surname = request.form.get("surname")
+        email = request.form.get("email")
         #error checking
         rows = db.execute("SELECT * FROM users WHERE username = ?", username)
         if not username:
@@ -67,7 +70,7 @@ def register():
             # generate hash of the password
             hash = generate_password_hash(password,method="pbkdf2:sha256")
             #insert new user
-            db.execute("INSERT INTO users (username, password) VALUES (?,?)",username,hash)
+            db.execute("INSERT INTO users (username,firstname,surname,password,email) VALUES (?,?,?,?,?)",username,firstname,surname,hash,email)
             
             #redirect user to home page
             return redirect("/")
@@ -88,7 +91,6 @@ def login():
             flash("You must provide a password")
             return apology("You must provide a password", 403)
             
-
         #quere database fro username
         rows = db.execute("SELECT * FROM users WHERE username = ? ", request.form.get("username"))
         #ensure that username exist and password is correct
@@ -118,6 +120,8 @@ def adding():
             return apology("Must provide Login")
         elif not request.form.get("password"):
             return apology("Must provide a password")
+        elif  request.form.get("password") != request.form.get("confirmation"):
+            return apology("Passwords must match", 400)
         #prepare the variables
         app_name = request.form.get("app_name")
         login = request.form.get("login")
@@ -154,22 +158,23 @@ def update():
         for app in v:
             id.append(app["id"])
         if id_in in id:
-            app_name = request.form.get("app_name")
             login = request.form.get("login")
             password = request.form.get("password")
             confiramtion = request.form.get("confirmation")
             additional = request.form.get("additonal")
 
-            if not app_name:
-                return apology("Must provide an App Name", 400)
-            elif not login:
+            if not login:
                 return apology("Must provide the Login", 400)
             elif not password or not confiramtion:
                 return apology("Must provide password", 400)
             elif password != confiramtion:
                 return apology("Password does not much", 400)
-
-            db.execute("UPDATE apps SET app_name=?, login=?, password=?, additional=? WHERE id = ? AND app_id = ?",app_name,login,password,additional,id_in, session["user_id"])
+            if additional is None:
+                db.execute("UPDATE apps SET  login=?, password=? WHERE id = ? AND app_id = ?",login,password,id_in, session["user_id"])
+                flash("Successful")
+            else:
+                db.execute("UPDATE apps SET  login=?, password=?, additional=? WHERE id = ? AND app_id = ?",login,password,additional,id_in, session["user_id"])
+                flash("Successful")
             return redirect("/")
         else:
             return apology("ID not found", 400)

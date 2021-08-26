@@ -1,6 +1,36 @@
-<div class="form-group">
-    <input class="input" autocomplete="off" autofocus name="firstname" placeholder="First Name" type="text" minlength="2">
-</div>
-<div class="form-group">
-    <input class="input" autocomplete="off" autofocus name="surname" placeholder="Surname" type="text" minlength="2">
-</div>
+<main class="container p-5">
+    <form action="/register" method="post">
+        <div class="form-group">
+            <input class="input" autocomplete="off" autofocus name="username" placeholder="Username" type="text" minlength="6">
+        </div>
+        <div class="form-group">
+            <input class="input" autocomplete="off" autofocus name="firstname" placeholder="First Name" type="text" minlength="2">
+        </div>
+        <div class="form-group">
+            <input class="input" autocomplete="off" autofocus name="surname" placeholder="Surname" type="text" minlength="2">
+        </div>
+        <div class="form-group">
+            <input class="input" autocomplete="off" autofocus name="email" placeholder="Email" type="text" minlength="6">
+        </div>
+
+        <div class="form-group">
+            <input class="input" autocomplete="off" autofocus name="password" placeholder="Password" type="password" minlength="8">
+        </div>
+        <div class="form-group">
+            <input class="input" autocomplete="off" autofocus name="confirmation" placeholder="Confirm Password" type="password" minlength="8">
+        </div>
+        <button class="btn btn-primary" type="submit">Register</button>
+    </form>
+</main>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('.input').bind("cut copy paste", function(e) {
+            e.preventDefault();
+            alert("You cannot paste text into this textbox!");
+            $('.input').bind("contextmenu", function(e) {
+                e.preventDefault();
+            });
+        });
+    });
+    </script>
