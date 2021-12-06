@@ -1,5 +1,6 @@
 import os 
-from cs50 import SQL
+#from cs50 import SQL
+import sqlite3
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_session import Session
 from flask.helpers import get_flashed_messages
@@ -28,15 +29,16 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-#configure sqlite3 db
-db  = SQL("sqlite:///v2.db")
+#connect the sqlite3 db
+connection = sqlite3.connect("v2.db", check_same_thread=False)
 
 #the home page
 @app.route("/")
 @login_required
 def index():
-    apps= db.execute("SELECT * FROM apps WHERE app_id = ?", session["user_id"])
-    
+    #apps= db.execute("SELECT * FROM apps WHERE app_id = ?", session["user_id"])
+    cursor = connection.execute("SELECT * FROM apps WHERE app_id = ?", [session["user_id"]])
+    apps = cursor.fetchall()
     return render_template("index.html",apps=apps)
 
 # registration page
@@ -49,8 +51,10 @@ def register():
         firstname = request.form.get("firstname")
         surname = request.form.get("surname")
         email = request.form.get("email")
+        
         #error checking
-        rows = db.execute("SELECT * FROM users WHERE username = ?", username)
+        rows = cursor.execute("SELECT * FROM users WHERE username = ?", [username])
+        connection.commit()
         if not username:
             #return apology("Must provide username", 400)
             flash("Must provide username")
@@ -70,8 +74,9 @@ def register():
             # generate hash of the password
             hash = generate_password_hash(password,method="pbkdf2:sha256")
             #insert new user
-            db.execute("INSERT INTO users (username,firstname,surname,password,email) VALUES (?,?,?,?,?)",username,firstname,surname,hash,email)
-            
+            #db.execute("INSERT INTO users (username,firstname,surname,password,email) VALUES (?,?,?,?,?)",username,firstname,surname,hash,email)
+            cursor.executemany("INSERT INTO users (username,firstname,surname,password,email) VALUES (?,?,?,?,?)",username,firstname,surname,hash,email)
+            connection.commit()
             #redirect user to home page
             return redirect("/")
     return render_template("register.html")
@@ -91,14 +96,17 @@ def login():
             flash("You must provide a password")
             return apology("You must provide a password", 403)
             
-        #quere database fro username
-        rows = db.execute("SELECT * FROM users WHERE username = ? ", request.form.get("username"))
+        #quere database for username
+        user = request.form.get("username")
+        #getting data from database 
+        cursor = connection.execute("SELECT * FROM users WHERE username = ? ", [user])
+        product = cursor.fetchall()
         #ensure that username exist and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["password"], request.form.get("password")):
+        if len(product) != 1 or not check_password_hash(product[0][4], request.form.get("password")):
             return apology("Invalid username and/or password", 403)
         
         #remember which user logged in
-        session["user_id"] = rows[0]["user_id"]
+        session["user_id"] = product[0][0]
         #redirect user to home page
         return redirect("/")
     else:
@@ -107,6 +115,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
+    connection.close()
     return redirect(url_for("login")) 
 
 #Adding new content page
@@ -127,7 +136,9 @@ def adding():
         login = request.form.get("login")
         password = request.form.get("password")
         additional = request.form.get("additional")
-        db.execute("INSERT INTO apps (app_id, app_name, login, password, additional) VALUES (?,?,?,?,?)",session["user_id"],app_name,login,password,additional)
+        #db.execute("INSERT INTO apps (app_id, app_name, login, password, additional) VALUES (?,?,?,?,?)",session["user_id"],app_name,login,password,additional)
+        cursor.executemany("INSERT INTO apps (app_id, app_name, login, password, additional) VALUES (?,?,?,?,?)",session["user_id"],app_name,login,password,additional)
+        connection.commit()
         return redirect("/")
     else:
         return render_template("adding.html")
@@ -139,12 +150,13 @@ def find():
 #search the app
 @app.route("/search")
 def search():
-    q = request.args.get("q")
-    if q:
-        apps = db.execute("SELECT * FROM apps WHERE app_name LIKE ? AND app_id = ?", "%" + q + "%", session["user_id"])
-    else:
-        apps = []
-    return render_template("search.html", apps=apps)
+    #q = request.args.get("q")
+    #if q:
+      #  apps = db.execute("SELECT * FROM apps WHERE app_name LIKE ? AND app_id = ?", "%" + q + "%", session["user_id"])
+    #else:
+      #  apps = []
+    #return render_template("search.html", apps=apps)
+    pass
 
 #update the app information
 @app.route("/update", methods=["GET","POST"])
@@ -153,7 +165,8 @@ def update():
     if request.method == "POST":
         #checking if the id is correct
         id_in = int(request.form.get("id"))
-        v = db.execute("SELECT id FROM apps WHERE app_id = ?", session["user_id"])
+        #v = db.execute("SELECT id FROM apps WHERE app_id = ?", session["user_id"])
+        v = cursor.execute("SELECT id FROM apps WHERE app_id = ?", session["user_id"])
         id = []
         for app in v:
             id.append(app["id"])
@@ -170,10 +183,14 @@ def update():
             elif password != confiramtion:
                 return apology("Password does not much", 400)
             if additional is None:
-                db.execute("UPDATE apps SET  login=?, password=? WHERE id = ? AND app_id = ?",login,password,id_in, session["user_id"])
+                #db.execute("UPDATE apps SET  login=?, password=? WHERE id = ? AND app_id = ?",login,password,id_in, session["user_id"])
+                cursor.executemany("UPDATE apps SET  login=?, password=? WHERE id = ? AND app_id = ?",login,password,id_in, session["user_id"])
+                connection.commit()
                 flash("Successful")
             else:
-                db.execute("UPDATE apps SET  login=?, password=?, additional=? WHERE id = ? AND app_id = ?",login,password,additional,id_in, session["user_id"])
+                #db.execute("UPDATE apps SET  login=?, password=?, additional=? WHERE id = ? AND app_id = ?",login,password,additional,id_in, session["user_id"])
+                cursor.executemany("UPDATE apps SET  login=?, password=?, additional=? WHERE id = ? AND app_id = ?",login,password,additional,id_in, session["user_id"])
+                connection.commit()
                 flash("Successful")
             return redirect("/")
         else:
@@ -187,15 +204,19 @@ def update():
 def delete():
     if request.method == "POST":
         id_in = int(request.form.get("id"))
-        v = db.execute("SELECT id FROM apps WHERE app_id = ?", session["user_id"])
+        #v = db.execute("SELECT id FROM apps WHERE app_id = ?", session["user_id"])
+        v = cursor.execute("SELECT id FROM apps WHERE app_id = ?", session["user_id"])
         id = []
         for app in v:
             id.append(app["id"])
         if id_in in id:
-            rows = db.execute("SELECT password FROM users WHERE user_id = ? ", session["user_id"])
+            #rows = db.execute("SELECT password FROM users WHERE user_id = ? ", session["user_id"])
+            rows = cursor.executemany("SELECT password FROM users WHERE user_id = ? ", session["user_id"])
             if int(len(rows)) != 1 or not check_password_hash(rows[0]["password"], request.form.get("password")):
                 return apology("Invalid  password", 403)
-            db.execute("DELETE FROM apps WHERE id = ?", id_in)
+            #db.execute("DELETE FROM apps WHERE id = ?", id_in)
+            cursor.execute("DELETE FROM apps WHERE id = ?", id_in)
+            connection.commit()
             flash("Success")
             return redirect("/")
         else:

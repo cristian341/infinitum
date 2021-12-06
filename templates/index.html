@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block title %}
-memmory
+Infinity
 {% endblock %}
 
 {% block main%}
@@ -16,11 +16,11 @@ memmory
     <tbody>
         {% for app in apps %}
             <tr>
-                <td>{{ app.id }}</td>
-                <td>{{ app.app_name }}</td>
-                <td>{{ app.login }}</td>
-                <td>{{ app.password }}</td>
-                <td>{{ app.additional }}</td>
+                <td>{{ app[1] }}</td>
+                <td>{{ app[2] }}</td>
+                <td>{{ app[3] }}</td>
+                <td>{{ app[4] }}</td>
+                <td>{{ app[5] }}</td>
             </tr>
         {% endfor %}
     </tbody>
