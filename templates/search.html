@@ -1,50 +1,28 @@
+{% extends "layout.html" %}
 
-<html lang="en">
-    <head>
-        <meta name="viewport" content="initial-scale=1, width=device-width">
-        <title>Apps</title>
-        
-    </head>
-    <body>
-        <nav class="navbar navbar-expand-md navbar-light bg-light border">
-            <a class="navbar-brand" href="/"><span class="green">Reminder</span></a>
-            <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" dara-target="#navbar" data-toggle="collapse" type="button">
-                <span class="navbar-toggle-icon"></span>
-            </button>
+{% block title %}
+Infinity
+{% endblock %}
 
-            <div class="collapse navbar-collapse" id="navbar">
-                <ul class="navbar-nav mr-auto mt-2">
-                    <li class="nav-item"><a class="nav-link" href="/find">Search app</a> </li>
-                    <li class="nav-item"><a class="nav-link" href="/quote">Quote</a> </li>
-                    <li class="nav-item"><a class="nav-link" href="/quote">Quote</a> </li>
-                    <li class="nav-item"><a class="nav-link" href="/adding">Add app</a> </li>
-                </ul>
-                <ul class="navbar-nav ml-auto mt-2">
-                    <li class="nav-item"><a class="nav-link" href="/setings">Setings</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/logout">Log out</a> </li>
-                </ul>
-            </div>
-        </nav>
-
-        <table class="table table-striped">
-            <thead>
-                <th>ID</th>
-                <th>App Name</th>
-                <th>Login</th>
-                <th>Password</th>
-                <th>Additional</th>
-            </thead>
-            <tbody>
-                {% for app in apps %}
-                    <tr>
-                        <td>{{ app.id }}</td>
-                        <td>{{ app.app_name }}</td>
-                        <td>{{ app.login }}</td>
-                        <td>{{ app.password }}</td>
-                        <td>{{ app.additional }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </body>
-</html>
+{% block main%}
+<table class="table table-striped">
+    <thead>
+        <th>ID</th>
+        <th>App Name</th>
+        <th>Login</th>
+        <th>Password</th>
+        <th>Additional</th>
+    </thead>
+    <tbody>
+        {% for app in apps %}
+            <tr>
+                <td>{{ app[1] }}</td>
+                <td>{{ app[2] }}</td>
+                <td>{{ app[3] }}</td>
+                <td>{{ app[4] }}</td>
+                <td>{{ app[5] }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
