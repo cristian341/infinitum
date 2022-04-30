@@ -1,13 +1,11 @@
-import os 
-#from cs50 import SQL
+
 import sqlite3
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_session import Session
-from flask.helpers import get_flashed_messages
+#from flask.helpers import get_flashed_messages
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
-import time
 from helpers import apology, login_required
 
 
@@ -33,7 +31,7 @@ Session(app)
 #connection = sqlite3.connect("v2.db", check_same_thread=False)
 
 #the home page
-@app.route("/")
+@app.route("/manager")
 @login_required
 def index():
     connection = sqlite3.connect("v2.db", check_same_thread=False)
@@ -106,7 +104,7 @@ def login():
         session["user_id"] = product[0][0]
         #redirect user to home page
         connection.close()
-        return redirect("/")
+        return redirect("/manager")
     else:
         return render_template("login.html")
 #log out
@@ -227,6 +225,10 @@ def delete():
             return apology("Invalid ID",400)
     else:
         return render_template("delete.html")
+
+@app.route("/", methods=["GET","POST"])
+def home():
+    return render_template("home.html")
 
 
 
