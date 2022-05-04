@@ -22,3 +22,12 @@ password from the account.<br>
 **Searching** the app by name, select search and then write the name that you assigned to the application to be searched.
 **Enjoy the freedom of open-source!**
 
+Installling the web-based password manager for Linux
+**Linux**
+```
+sudo apt update & sudo apt upgrade
+git clone https://github.com/cristian341/infinitum.git
+cd infinitum
+pip3 install -r requirements.txt
+flask run
+```
