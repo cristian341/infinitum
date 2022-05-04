@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology, login_required
-
+import os
 
 #configure application
 app = Flask(__name__)
@@ -230,5 +230,15 @@ def delete():
 def home():
     return render_template("home.html")
 
+exiting = False
 
+@app.route("/shutdown")
+def exit_app():
+    global exiting
+    exiting = True
+    return "Done"
 
+@app.teardown_request
+def teardown(exception):
+    if exiting:
+        os._exit(0)
