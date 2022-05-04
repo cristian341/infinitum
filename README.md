@@ -20,3 +20,5 @@ from the App you want to update (change password or other parameters).<br>
 to confirm that you want to delete the app from the list of applications you need to choose its ID and the <br>
 password from the account.<br>
 **Searching** the app by name, select search and then write the name that you assigned to the application to be searched.
+**Enjoy the freedom of open-source!**
+
