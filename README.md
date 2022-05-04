@@ -23,6 +23,7 @@ password from the account.<br>
 **Enjoy the freedom of open-source!**
 
 Installling the web-based password manager for Linux
+
 **Linux**
 ```
 sudo apt update & sudo apt upgrade
