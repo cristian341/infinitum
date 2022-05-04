@@ -12,14 +12,18 @@ the program to improve its UI and the encryption methods.
 create a unique password with the <b>minimum length at least 8 characters,</b> failure to provide at least 8 <br>
 characters and to confirm the password will encounter to fill the form again.<br>
 
-**Adding** an account form an application, select add app, and then fill the form as you will fill other form, in<br>
-the form you got an additional space (Additional) to write the information of the application on your wish.<br>
-**Update** an App you will use the App ID to change its parameters, to do so make sure you get the right ID <br> 
-from the App you want to update (change password or other parameters).<br>
-**Delete** an App, you will use the same technique by selecting the App ID to make any modification with it, <br>
-to confirm that you want to delete the app from the list of applications you need to choose its ID and the <br>
-password from the account.<br>
+**Adding** an account form an application, select add app, and then fill the form as you will fill other form, in
+the form you got an additional space (Additional) to write the information of the application on your wish.
+
+**Update** an App you will use the App ID to change its parameters, to do so make sure you get the right ID 
+from the App you want to update (change password or other parameters).
+
+**Delete** an App, you will use the same technique by selecting the App ID to make any modification with it, 
+to confirm that you want to delete the app from the list of applications you need to choose its ID and the 
+password from the account.
+
 **Searching** the app by name, select search and then write the name that you assigned to the application to be searched.
+
 **Enjoy the freedom of open-source!**
 
 Installling the web-based password manager for Linux
