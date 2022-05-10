@@ -8,7 +8,8 @@ from werkzeug.exceptions import default_exceptions, HTTPException, InternalServe
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology, login_required
 import os
-
+from encryption import Encrypt, Decrypt
+from copy import deepcopy
 #configure application
 app = Flask(__name__)
 #ensure templates are auto-reloaded
@@ -34,11 +35,19 @@ Session(app)
 @app.route("/manager")
 @login_required
 def index():
-    connection = sqlite3.connect("v2.db", check_same_thread=False)
+    connection = sqlite3.connect("encrypt_db.db", check_same_thread=False)
     cursor = connection.execute("SELECT * FROM apps WHERE app_id = ?", [session["user_id"]])
     apps = cursor.fetchall()
-    connection.close()
-    return render_template("index.html",apps=apps)
+    lst = []
+    for app in apps:
+        cp = list(deepcopy(app))
+        non = Decrypt(cp[4])
+        non.split_rails()
+        word = non.decrypt()
+        cp[4] = word
+        lst.append(tuple(cp))
+        connection.close()
+    return render_template("index.html",apps=lst)
 
 # registration page
 @app.route("/register", methods=["GET","POST"])
@@ -51,7 +60,7 @@ def register():
         surname = request.form.get("surname")
         email = request.form.get("email")
         #error checking
-        connection = sqlite3.connect("v2.db", check_same_thread=False)
+        connection = sqlite3.connect("encrypt_db.db", check_same_thread=False)
         cursor = connection.execute("SELECT * FROM users WHERE username = ?", [username])
         product = cursor.fetchall()
         if not username:
@@ -72,7 +81,7 @@ def register():
             # generate hash of the password
             hash = generate_password_hash(password,method="pbkdf2:sha256")
             #insert new user
-            connection.execute("INSERT INTO users (username,firstname,surname,password,email) VALUES (?,?,?,?,?)", (username,firstname,surname,hash,email))
+            connection.execute("INSERT INTO users (username,firtname,surname,password,email) VALUES (?,?,?,?,?)", (username,firstname,surname,hash,email))
             connection.commit()
             connection.close()
             #redirect user to home page
@@ -94,7 +103,7 @@ def login():
             return apology("You must provide a password", 403)
         user = request.form.get("username")
         #getting data from database 
-        connection = sqlite3.connect("v2.db", check_same_thread=False)
+        connection = sqlite3.connect("encrypt_db.db", check_same_thread=False)
         cursor = connection.execute("SELECT * FROM users WHERE username = ? ", [user])
         product = cursor.fetchall()
         #ensure that username exist and password is correct
@@ -132,11 +141,15 @@ def adding():
         password = request.form.get("password")
         additional = request.form.get("additional")
         #updating the database with new created app
-        connection = sqlite3.connect("v2.db", check_same_thread=False)
-        cursor = connection.execute("INSERT INTO apps (app_id, app_name, login, password, additional) VALUES (?,?,?,?,?)", (session["user_id"],app_name,login,password,additional))
+        connection = sqlite3.connect("encrypt_db.db", check_same_thread=False)
+        security = Encrypt(password)
+        security.build()
+        password = security.encrypt()
+        #cursor = 
+        connection.execute("INSERT INTO apps (app_id, app_name, login, password, additional) VALUES (?,?,?,?,?)", (session["user_id"],app_name,login,password,additional))
         connection.commit()
         connection.close()
-        return redirect("/")
+        return redirect("/manager")
     else:
         return render_template("adding.html")
 
@@ -150,14 +163,23 @@ def find():
 @login_required
 def search():
     q = request.args.get("q")
-    connection = sqlite3.connect("v2.db", check_same_thread=False)
+    connection = sqlite3.connect("encrypt_db.db", check_same_thread=False)
     apps = connection.execute("SELECT * FROM apps WHERE app_name LIKE ? AND app_id = ?", ("%" + q + "%", session["user_id"]))
     apps = apps.fetchall()
     connection.close()
     if len(apps) == 0:
         apps = []
         flash("No matches found")
-    return render_template("search.html", apps=apps)  #and connection.close()
+    lst = []
+    for app in apps:
+        cp = list(deepcopy(app))
+        non = Decrypt(cp[4])
+        non.split_rails()
+        word = non.decrypt()
+        cp[4] = word
+        lst.append(tuple(cp))
+        connection.close()
+    return render_template("search.html", apps=lst)  #and connection.close()
     
 
 #update the app information
@@ -165,7 +187,7 @@ def search():
 @login_required
 def update():
     if request.method == "POST":
-        connection = sqlite3.connect("v2.db", check_same_thread=False)
+        connection = sqlite3.connect("encrypt_db.db", check_same_thread=False)
         #checking if the id is correct
         id_in = int(request.form.get("id"))
         cursor = connection.execute("SELECT id FROM apps WHERE app_id = ?", [session["user_id"]])
@@ -184,11 +206,17 @@ def update():
             elif password != confiramtion:
                 return apology("Password does not much", 400)
             if additional is None:
+                security = Encrypt(password)
+                security.build()
+                password = security.encrypt()
                 connection.execute("UPDATE apps SET  login=?, password=? WHERE id = ? AND app_id = ?",(login,password,id_in, session["user_id"]))
                 connection.commit()
                 connection.close()
                 flash("Successful")
             else:
+                security = Encrypt(password)
+                security.build()
+                password = security.encrypt()
                 connection.execute("UPDATE apps SET  login=?, password=?, additional=? WHERE id = ? AND app_id = ?",(login,password,additional,id_in, session["user_id"]))
                 connection.commit()
                 connection.close()
@@ -206,7 +234,7 @@ def update():
 def delete():
     if request.method == "POST":
         id_in = int(request.form.get("id"))
-        connection = sqlite3.connect("v2.db", check_same_thread=False)
+        connection = sqlite3.connect("encrypt_db.db", check_same_thread=False)
         cursor = connection.execute("SELECT id FROM apps WHERE app_id = ?", [session["user_id"]])
         id = []
         for app in cursor.fetchall():
